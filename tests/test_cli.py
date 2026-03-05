@@ -59,3 +59,18 @@ def test_update_processes_csv(tmp_path, sample_wb, monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert "transactions" in result.output.lower()
+
+def test_report_command_no_data(tmp_path, sample_wb, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+    runner.invoke(cli, ["init", "--workbook", str(sample_wb), "--force"])
+    result = runner.invoke(cli, ["report", "--month", "2026-01"])
+    # Should run without crashing even with no report file
+    assert result.exit_code == 0
+
+def test_map_command_lists_mappings(tmp_path, sample_wb, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+    runner.invoke(cli, ["init", "--workbook", str(sample_wb), "--force"])
+    result = runner.invoke(cli, ["map", "--list"])
+    assert result.exit_code == 0
