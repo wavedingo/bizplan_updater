@@ -74,3 +74,16 @@ def test_map_command_lists_mappings(tmp_path, sample_wb, monkeypatch):
     runner.invoke(cli, ["init", "--workbook", str(sample_wb), "--force"])
     result = runner.invoke(cli, ["map", "--list"])
     assert result.exit_code == 0
+
+def test_h_flag_on_group(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+    result = runner.invoke(cli, ["-h"])
+    assert result.exit_code == 0, result.output
+    assert "init" in result.output
+
+def test_h_flag_on_subcommand(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+    result = runner.invoke(cli, ["map", "-h"])
+    assert result.exit_code == 0, result.output
