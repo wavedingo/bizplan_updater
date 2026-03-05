@@ -1,0 +1,3 @@
+# Excel workbook structure — populated by: bizplan init
+# input_sheets: list of sheets the tool may write to
+# locked_sheets: formula-driven sheets the tool must never touch
