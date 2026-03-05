@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+data/transactions.db
+.DS_Store
+output/
+*.env
