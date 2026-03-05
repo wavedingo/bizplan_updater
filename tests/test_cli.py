@@ -39,3 +39,23 @@ def test_help_flag(tmp_path, monkeypatch):
     result = runner.invoke(cli, ["--help"])
     assert "init" in result.output
     assert result.exit_code == 0
+
+def test_update_processes_csv(tmp_path, sample_wb, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+    # Copy sample CSV to expected location
+    import shutil
+    qb_dir = tmp_path / "quickbooks_exports"
+    qb_dir.mkdir()
+    src = Path("/Users/jrv/Documents/Code/projects/bizplan_updater/quickbooks_exports/TD_Bank-3.csv")
+    if not src.exists():
+        pytest.skip("Sample CSV not present")
+    shutil.copy(src, qb_dir / "TD_Bank-3.csv")
+
+    runner.invoke(cli, ["init", "--workbook", str(sample_wb), "--force"])
+    result = runner.invoke(
+        cli,
+        ["update", "--month", "2026-01", "--workbook", str(sample_wb), "--no-prompt"],
+    )
+    assert result.exit_code == 0, result.output
+    assert "transactions" in result.output.lower()
