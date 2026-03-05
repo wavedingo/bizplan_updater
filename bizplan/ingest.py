@@ -39,7 +39,7 @@ def parse_qb_csv(csv_path: Path) -> list[dict]:
             m, d, y = raw_date.split("/")
             date = f"{y}-{m}-{d}"
             category_path = parsed["category_path"]
-            fingerprint = f"{date}|{vendor}|{abs(amount)}|{category_path}"
+            fingerprint = f"{date}|{vendor}|{abs(amount):.2f}|{category_path}"
             rows.append({
                 "fingerprint": fingerprint,
                 "date": date,
