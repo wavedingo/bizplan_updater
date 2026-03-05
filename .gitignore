@@ -4,4 +4,9 @@ __pycache__/
 data/transactions.db
 .DS_Store
 output/
-*.env
+.env
+.env.*
+bankstatements/
+financial_tables/
+quickbooks_exports/
+template/
