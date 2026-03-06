@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync)",
+      "Bash(for f in bizplan/__init__.py bizplan/db.py bizplan/ingest.py bizplan/categorize.py bizplan/aggregate.py bizplan/excel_writer.py bizplan/reconcile.py bizplan/report.py bizplan/ai_assist.py bizplan/config.py tests/__init__.py)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//Users/jrv/Documents/Code/projects/bizplan_updater/**)",
+      "Bash(done)",
+      "Bash(git -C /Users/jrv/Documents/Code/projects/bizplan_updater show --stat HEAD)"
+    ]
+  }
+}
