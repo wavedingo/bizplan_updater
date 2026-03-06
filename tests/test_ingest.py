@@ -58,6 +58,20 @@ def test_parse_qb_csv_fingerprint_format(tmp_path):
     expected_fp = "2026-01-06|Patreon|6239.41|Sales:Subscription Sales"
     assert rows[0]["fingerprint"] == expected_fp
 
+def test_parse_qb_csv_duplicate_within_file_gets_sequence(tmp_path):
+    """Two identical transactions in one file get distinct fingerprints."""
+    csv_content = '''date,Bank description,Amount,From/To,Transaction Posted
+"01/09/2026","Online Xfer Transfer","-$5,000.00","","Added to:  Expense: Expense:Partner distributions 01/09/2026 $5,000.00"
+"01/09/2026","Online Xfer Transfer","-$5,000.00","","Added to:  Expense: Expense:Partner distributions 01/09/2026 $5,000.00"
+'''
+    csv_file = tmp_path / "test.csv"
+    csv_file.write_text(csv_content)
+    rows = parse_qb_csv(csv_file)
+    assert len(rows) == 2
+    assert rows[0]["fingerprint"] != rows[1]["fingerprint"]
+    assert rows[1]["fingerprint"].endswith("__2")
+
+
 def test_parse_real_sample_csv():
     """Smoke test against the actual sample file."""
     if not SAMPLE_CSV.exists():

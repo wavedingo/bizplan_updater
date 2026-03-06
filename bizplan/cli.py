@@ -9,6 +9,14 @@ DB_PATH = Path("data/transactions.db")
 MAPPINGS_PATH = Path("config/mappings.yaml")
 MODEL_PATH = Path("config/model.yaml")
 
+
+def _require_init() -> None:
+    """Exit with a helpful message if init has not been run."""
+    if not DB_PATH.exists():
+        rprint("[red]Database not found.[/red] Run: [bold]bizplan init --workbook <path>[/bold]")
+        raise SystemExit(1)
+
+
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
@@ -130,9 +138,7 @@ def validate(workbook: str):
               help="Path to the Excel financial model workbook.")
 @click.option("--no-prompt", is_flag=True,
               help="Skip interactive prompts for unknown categories (useful for testing).")
-@click.option("--force", is_flag=True,
-              help="Proceed even if validate detects formula issues.")
-def update(month: str | None, workbook: str, no_prompt: bool, force: bool):
+def update(month: str | None, workbook: str, no_prompt: bool):
     """Run the monthly financial update pipeline.
 
     Steps: detect new QB CSV files, ingest and deduplicate transactions,
@@ -140,6 +146,7 @@ def update(month: str | None, workbook: str, no_prompt: bool, force: bool):
     write actuals to the Excel model, reconcile revenue/cash, and
     generate a Markdown variance report.
     """
+    _require_init()
     from datetime import date
     from bizplan.db import get_conn, insert_transaction, log_run, get_monthly_totals_raw
     from bizplan.ingest import parse_qb_csv
@@ -207,6 +214,20 @@ def update(month: str | None, workbook: str, no_prompt: bool, force: bool):
                 rprint(f"[yellow]Category prompting error: {e}[/yellow]")
         elif unmapped and no_prompt:
             rprint(f"[dim]{len(unmapped)} unmapped categories skipped (--no-prompt)[/dim]")
+
+    # Sync confirmed mappings to YAML for AI context on future runs
+    with get_conn(DB_PATH) as conn:
+        all_mappings = {}
+        rows = conn.execute(
+            "SELECT category_path, excel_sheet, excel_row_label FROM category_mappings"
+        ).fetchall()
+        for row in rows:
+            all_mappings[row["category_path"]] = {
+                "sheet": row["excel_sheet"],
+                "row_label": row["excel_row_label"],
+            }
+    from bizplan.config import save_mappings
+    save_mappings(all_mappings)
 
     # Step 5 & 6: Aggregate + get prior month for variance
     y_int, m_int = map(int, month.split("-"))
@@ -278,6 +299,7 @@ def map_cmd(list_mappings: bool):
     Use --list to see all current mappings.
     Without flags, launches interactive mapping review for any unconfirmed entries.
     """
+    _require_init()
     from bizplan.db import get_conn
     with get_conn(DB_PATH) as conn:
         rows = conn.execute(

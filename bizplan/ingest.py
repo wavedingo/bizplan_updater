@@ -23,6 +23,7 @@ def parse_qb_csv(csv_path: Path) -> list[dict]:
     """Parse a QuickBooks CSV export into a list of transaction dicts."""
     df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
     rows = []
+    fp_counts: dict[str, int] = {}
     for _, row in df.iterrows():
         raw_date = row["date"].strip()          # MM/DD/YYYY
         vendor = row["Bank description"].strip()
@@ -39,7 +40,10 @@ def parse_qb_csv(csv_path: Path) -> list[dict]:
             m, d, y = raw_date.split("/")
             date = f"{y}-{m}-{d}"
             category_path = parsed["category_path"]
-            fingerprint = f"{date}|{vendor}|{abs(amount):.2f}|{category_path}"
+            base_fp = f"{date}|{vendor}|{abs(amount):.2f}|{category_path}"
+            fp_counts[base_fp] = fp_counts.get(base_fp, 0) + 1
+            count = fp_counts[base_fp]
+            fingerprint = f"{base_fp}__{count}" if count > 1 else base_fp
             rows.append({
                 "fingerprint": fingerprint,
                 "date": date,
